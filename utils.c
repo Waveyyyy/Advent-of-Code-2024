@@ -26,15 +26,15 @@ ssize_t read_file(char **buffer, char *file_name)
   fseek(file_ptr, 0L, SEEK_SET);
 
   // get enough memory for the buffer to be able to hold the file contents
-  buffer = (char**)calloc(len_bytes, sizeof(char));
+  *buffer = (char*)calloc(len_bytes, sizeof(char));
 
   // check for memory allocation error
-  if (buffer == NULL)
+  if (*buffer == NULL)
   {
     return -1;
   }
 
-  fread(buffer, sizeof(char), len_bytes, file_ptr);
+  fread(*buffer, sizeof(char), len_bytes, file_ptr);
   fclose(file_ptr);
 
   return len_bytes;
