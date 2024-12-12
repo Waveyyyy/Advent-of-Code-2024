@@ -14,6 +14,7 @@ int main()
   int lines = get_number_lines(test_input);
   int *left = calloc(lines, sizeof(int));
   int *right = calloc(lines, sizeof(int));
+  split_input(test_input, left, right);
 }
 
 int get_number_lines(char *pinput)
@@ -31,5 +32,18 @@ int get_number_lines(char *pinput)
 
 void split_input(char *pinput, int *left, int *right)
 {
+  int cur_line = 0;
+  for (int i = 0; i < strlen(pinput); i++) {
+    if (pinput[i] != ' ' && (pinput[i + 1] == ' ' && pinput[i + 2] == ' ' &&
+                             pinput[i + 3] == ' ')) {
+      left[cur_line] = pinput[i];
+    } else if (pinput[i] != ' ' && (pinput[i + 1] == '\n')) {
+      right[cur_line] = pinput[i];
+      cur_line++;
+    }
+  }
+  for (int i = 0; i <= cur_line; i++) {
+    printf("%d : %d\n", left[i], right[i]);
+  }
 }
 
