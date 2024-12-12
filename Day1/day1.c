@@ -33,12 +33,19 @@ int get_number_lines(char *pinput)
 void split_input(char *pinput, int *left, int *right)
 {
   int cur_line = 0;
+  // iterate over each character in the input
   for (int i = 0; i < strlen(pinput); i++) {
+    // check if the current character is NOT a space, and check that the next 3
+    // characters ARE spaces. this is a value in the LEFT column.
     if (pinput[i] != ' ' && (pinput[i + 1] == ' ' && pinput[i + 2] == ' ' &&
                              pinput[i + 3] == ' ')) {
       left[cur_line] = pinput[i];
-    } else if (pinput[i] != ' ' && (pinput[i + 1] == '\n')) {
+    }
+    // Check if the current character is NOT a space, and check if the next
+    // character is a newline character. this is a value in the RIGHT column.
+    else if (pinput[i] != ' ' && (pinput[i + 1] == '\n')) {
       right[cur_line] = pinput[i];
+      // we are at the end of a line, so advance our line counter by one.
       cur_line++;
     }
   }
