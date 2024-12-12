@@ -8,3 +8,6 @@ OBJ = day1.o ../utils/utils.o
 
 solution: $(OBJ)
 	gcc $(CFLAGS_DBG) -o $@ $^
+
+clean:
+	rm *.o ../utils/*.o
