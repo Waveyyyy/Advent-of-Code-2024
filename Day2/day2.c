@@ -19,7 +19,7 @@ int main()
 void solve_part1(char *input, ssize_t input_length)
 {
   int lines = get_number_lines(input, input_length);
-  char **rows = malloc(lines * sizeof(char*));
+  char **rows = malloc(lines * sizeof(char *));
   split_input(input, input_length, rows);
   for (int i = 0; i < lines; i++)
   {
