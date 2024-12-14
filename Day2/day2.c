@@ -4,13 +4,13 @@
 #include <string.h>
 
 int get_number_lines(char *pinput, ssize_t input_length);
-int split_input(char *pinput, ssize_t input_length, char **rows);
+void split_input(char *pinput, ssize_t input_length, char **rows);
 void slice(char *result, char *source, ssize_t start, ssize_t end);
 void solve_part1(char *input, ssize_t input_length);
 
 int main()
 {
-  char *test_input =
+  char test_input[] =
     "7 6 4 2 1\n1 2 7 8 9\n9 7 6 2 1\n1 3 2 4 5\n8 6 4 4 1\n1 3 6 7 9\n";
   ssize_t test_input_length = strlen(test_input);
   solve_part1(test_input, test_input_length);
@@ -19,7 +19,7 @@ int main()
 void solve_part1(char *input, ssize_t input_length)
 {
   int lines = get_number_lines(input, input_length);
-  char **rows = malloc(lines);
+  char **rows = malloc(lines * sizeof(char*));
   split_input(input, input_length, rows);
   for (int i = 0; i < lines; i++)
   {
@@ -40,7 +40,7 @@ int get_number_lines(char *pinput, ssize_t input_length)
   return lines;
 }
 
-int split_input(char *pinput, ssize_t input_length, char **rows)
+void split_input(char *pinput, ssize_t input_length, char **rows)
 {
   int cur_line = 0;
   for (int pos = 0; pos < input_length; pos++) {
