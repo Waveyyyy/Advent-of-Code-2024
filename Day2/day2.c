@@ -6,7 +6,9 @@
 int get_number_lines(char *pinput, ssize_t input_length);
 void split_input(char *pinput, ssize_t input_length, char **rows);
 void slice(char *result, char *source, ssize_t start, ssize_t end);
-void solve_part1(char *input, ssize_t input_length);
+int solve_part1(char *input, ssize_t input_length);
+int split_row_to_digits(char *rows, int *output);
+int check_safety(char **rows, ssize_t lines);
 
 int main()
 {
@@ -16,15 +18,13 @@ int main()
   solve_part1(test_input, test_input_length);
 }
 
-void solve_part1(char *input, ssize_t input_length)
+int solve_part1(char *input, ssize_t input_length)
 {
   int lines = get_number_lines(input, input_length);
   char **rows = malloc(lines * sizeof(char *));
   split_input(input, input_length, rows);
-  for (int i = 0; i < lines; i++)
-  {
-    printf("%s\n", rows[i]);
-  }
+  int result = check_safety(rows, lines);
+  return result;
 }
 
 int get_number_lines(char *pinput, ssize_t input_length)
@@ -86,4 +86,31 @@ void split_input(char *pinput, ssize_t input_length, char **rows)
 void slice(char *result, char *source, ssize_t start, ssize_t end)
 {
   strncpy(result, source + start, end);
+}
+
+int split_row_to_digits(char *row, int *output)
+{
+  /*   printf("row: %s\n", row); */
+  char *digit;
+  digit = strtok(row, " ");
+  int ctr = 0;
+  while (digit != NULL) {
+    char *endp = NULL;
+    /*     printf("digit: %s\n", digit); */
+    output[ctr] = strtol(digit, &endp, 10);
+    if (endp == digit) {
+      return 1;
+    }
+    /*     printf("digits[%d] = %d\n", ctr, output[ctr]); */
+    digit = strtok(NULL, " ");
+    ctr++;
+  }
+  for (int i = 0; i < (strlen(row) - 1) / 2; i++) {
+    printf("%d", output[i]);
+  }
+  return 0;
+}
+
+int check_safety(char **rows, ssize_t lines)
+{
 }
