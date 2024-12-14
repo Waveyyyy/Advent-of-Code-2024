@@ -4,7 +4,7 @@
 #include <string.h>
 
 int get_number_lines(char *pinput, ssize_t input_length);
-void split_input(char *pinput, ssize_t input_length, int *left, int *right);
+int split_input(char *pinput, ssize_t input_length, int *left, int *right);
 void slice(char *result, char *source, ssize_t start, ssize_t end);
 
 int main()
@@ -14,7 +14,11 @@ int main()
   int lines = get_number_lines(test_input);
   int *left = calloc(lines, sizeof(int));
   int *right = calloc(lines, sizeof(int));
-  split_input(test_input, left, right);
+
+  if (split_input(test_input, input_length, left, right) == 1) {
+    printf("unable to convert characters to integer\n");
+    return 1;
+  }
 }
 
 int get_number_lines(char *pinput, ssize_t input_length)
@@ -30,7 +34,7 @@ int get_number_lines(char *pinput, ssize_t input_length)
   return lines;
 }
 
-void split_input(char *pinput, ssize_t input_length, int *left, int *right)
+int split_input(char *pinput, ssize_t input_length, int *left, int *right)
 {
   int cur_line = 0;
   char *pinput_copy = pinput;
@@ -88,13 +92,26 @@ void split_input(char *pinput, ssize_t input_length, int *left, int *right)
     // add 2 to current pos (3 spaces inbetween columns 1(currentPos)+2=3)
     // get from new Pos up to newline - gives right column
     char *right_chars = malloc(rightcol_len);
-    slice(right_chars, substring, slice_length-rightcol_len,
-          slice_length);
+    slice(right_chars, substring, slice_length - rightcol_len, slice_length);
+
+    // convert each columns character string into integers and store in
+    // respective arrays
+    char *endp = NULL;
+    left[cur_line] = strtol(left_chars, &endp, 10);
+    if (endp == left_chars) {
+      return 1;
+    }
+    endp = NULL;
+    right[cur_line] = strtol(right_chars, &endp, 10);
+    if (endp == right_chars) {
+      return 1;
+    }
+
     // move the position along slice_length bytes (additional +1 on loop
     // iteration)
     pos += slice_length;
     // iterate cur_line
-    cur_line++;
+        cur_line++;
   }
 }
 
