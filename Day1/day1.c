@@ -1,4 +1,5 @@
 #include "../utils/utils.h"
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,19 +7,44 @@
 int get_number_lines(char *pinput, ssize_t input_length);
 int split_input(char *pinput, ssize_t input_length, int *left, int *right);
 void slice(char *result, char *source, ssize_t start, ssize_t end);
+void sort_array(int *array, int array_length);
+int calculate_result(int *left, int *right, ssize_t lines);
+int solve_part1(char *input, ssize_t input_length);
 
 int main()
 {
   char test_input[] = "3   4\n4   3\n2   5\n1   3\n3   9\n3   3\n";
-  printf("%s", test_input);
-  int lines = get_number_lines(test_input);
+  ssize_t test_input_length = strlen(test_input);
+  assert(solve_part1(test_input, test_input_length) == 11);
+  char *aoc_input;
+  read_file(&aoc_input, "input.txt");
+  ssize_t input_length = strlen(aoc_input);
+
+  int result = solve_part1(aoc_input, input_length);
+  if (result != -1) {
+    printf("result! %d", result);
+    return 0;
+  } else {
+    printf("something went wrong with conversion of chars to ints");
+    return 1;
+  }
+}
+
+int solve_part1(char *input, ssize_t input_length)
+{
+  int lines = get_number_lines(input, input_length);
   int *left = calloc(lines, sizeof(int));
   int *right = calloc(lines, sizeof(int));
 
-  if (split_input(test_input, input_length, left, right) == 1) {
+  if (split_input(input, input_length, left, right) == 1) {
     printf("unable to convert characters to integer\n");
-    return 1;
+    return -1;
   }
+  sort_array(left, lines);
+  sort_array(right, lines);
+
+  int result = calculate_result(left, right, lines);
+  return result;
 }
 
 int get_number_lines(char *pinput, ssize_t input_length)
@@ -30,14 +56,13 @@ int get_number_lines(char *pinput, ssize_t input_length)
       ++lines;
     }
   }
-  printf("%d\n", lines);
+/*   printf("%d\n", lines); */
   return lines;
 }
 
 int split_input(char *pinput, ssize_t input_length, int *left, int *right)
 {
   int cur_line = 0;
-  char *pinput_copy = pinput;
   for (int pos = 0; pos < input_length; pos++) {
     char *psubstr;
     char *remaining_rows;
@@ -68,13 +93,6 @@ int split_input(char *pinput, ssize_t input_length, int *left, int *right)
       // copy slice into substring
       slice(substring, remaining_rows, 0, slice_length);
     }
-    // get the length of this slice
-    ssize_t slice_length = psubstr - &pinput_copy[0];
-    // create substring variable of len slice_length
-    char *substring = malloc(slice_length);
-    // copy slice into substring
-    slice(substring, pinput_copy, pos, slice_length);
-    /*     strncpy(substring, pinput_copy + pos, slice_length); */
     printf("%s\n", substring);
 
     // find first occurrence of space on in the slice(strstr)
@@ -111,11 +129,48 @@ int split_input(char *pinput, ssize_t input_length, int *left, int *right)
     // iteration)
     pos += slice_length;
     // iterate cur_line
-        cur_line++;
+    cur_line++;
   }
+  return 0;
 }
 
 void slice(char *result, char *source, ssize_t start, ssize_t end)
 {
   strncpy(result, source + start, end);
+}
+
+void sort_array(int *array, int array_length)
+{
+  int current_value;
+  // iterate over the array array_length times
+  for (int i = 0; i < array_length; i++) {
+    // this loop iterates over the array, one position ahead of the outer loop
+    for (int j = i + 1; j < array_length; j++) {
+      // if the value at the current index is greater than the value at the next
+      // index, swap the positions of the items
+      if (array[i] > array[j]) {
+        current_value = array[i];
+        array[i] = array[j];
+        array[j] = current_value;
+      }
+    }
+  }
+}
+
+int calculate_result(int *left, int *right, ssize_t lines)
+{
+  int total = 0;
+  // iterate lines number of times
+  for (int i = 0; i < lines; i++) {
+    // compare the value at i in the left array against the value at i in the
+    // right array
+    if (left[i] < right[i]) {
+      // subtract left from right and add to total if right is larger
+      total += (right[i] - left[i]);
+    } else {
+      // otherwise subtract right from left and add to total
+      total += (left[i] - right[i]);
+    }
+  }
+  return total;
 }
