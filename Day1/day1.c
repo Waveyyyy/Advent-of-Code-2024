@@ -3,9 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-int get_number_lines(char *pinput);
-
-void split_input(char *pinput, int *left, int *right);
+int get_number_lines(char *pinput, ssize_t input_length);
+void split_input(char *pinput, ssize_t input_length, int *left, int *right);
+void slice(char *result, char *source, ssize_t start, ssize_t end);
 
 int main()
 {
@@ -17,7 +17,7 @@ int main()
   split_input(test_input, left, right);
 }
 
-int get_number_lines(char *pinput)
+int get_number_lines(char *pinput, ssize_t input_length)
 {
   // get number of lines in the input
   int lines = 0;
@@ -30,27 +30,46 @@ int get_number_lines(char *pinput)
   return lines;
 }
 
-void split_input(char *pinput, int *left, int *right)
+void split_input(char *pinput, ssize_t input_length, int *left, int *right)
 {
   int cur_line = 0;
-  // iterate over each character in the input
-  for (int i = 0; i < strlen(pinput); i++) {
-    // check if the current character is NOT a space, and check that the next 3
-    // characters ARE spaces. this is a value in the LEFT column.
-    if (pinput[i] != ' ' && (pinput[i + 1] == ' ' && pinput[i + 2] == ' ' &&
-                             pinput[i + 3] == ' ')) {
-      left[cur_line] = pinput[i];
+  char *pinput_copy = pinput;
+  for (int pos = 0; pos < input_length; pos++) {
+    char *psubstr;
+    // get slice of string from pos up to newline for each line
+    if (pos == 0) {
+      // get pointer to the first occurrence of a newline
+      psubstr = strstr(pinput_copy, "\n");
+    } else {
+      slice(pinput_copy, pinput_copy, pos, input_length - pos);
+      psubstr = strstr(pinput_copy, "\n");
     }
-    // Check if the current character is NOT a space, and check if the next
-    // character is a newline character. this is a value in the RIGHT column.
-    else if (pinput[i] != ' ' && (pinput[i + 1] == '\n')) {
-      right[cur_line] = pinput[i];
-      // we are at the end of a line, so advance our line counter by one.
-      cur_line++;
-    }
-  }
-  for (int i = 0; i <= cur_line; i++) {
-    printf("%d : %d\n", left[i], right[i]);
+    // get the length of this slice
+    ssize_t slice_length = psubstr - &pinput_copy[0];
+    // create substring variable of len slice_length
+    char *substring = malloc(slice_length);
+    // copy slice into substring
+    slice(substring, pinput_copy, pos, slice_length);
+    /*     strncpy(substring, pinput_copy + pos, slice_length); */
+    printf("%s\n", substring);
+
+    // find first occurrence of space on in the slice(strstr)
+    //
+    // get chars from start of line (char following newline or pos 0) to first
+    // occurrence of space - gives left column.
+    //
+    // add 2 to current pos (3 spaces inbetween columns 1(currentPos)+2=3)
+    // get from new Pos up to newline - gives right column
+
+    // move the position along slice_length bytes (additional +1 on loop
+    // iteration)
+    pos += slice_length;
+    // iterate cur_line
+    cur_line++;
   }
 }
 
+void slice(char *result, char *source, ssize_t start, ssize_t end)
+{
+  strncpy(result, source + start, end);
+}
