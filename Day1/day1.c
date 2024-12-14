@@ -10,6 +10,7 @@ void slice(char *result, char *source, ssize_t start, ssize_t end);
 void sort_array(int *array, int array_length);
 int calculate_result(int *left, int *right, ssize_t lines);
 int solve_part1(char *input, ssize_t input_length);
+int solve_part2(char *input, ssize_t input_length);
 
 int main()
 {
@@ -22,8 +23,16 @@ int main()
 
   int result = solve_part1(aoc_input, input_length);
   if (result != -1) {
-    printf("result! %d", result);
-    return 0;
+    printf("Part 1 result! %d\n", result);
+  } else {
+    printf("something went wrong with conversion of chars to ints");
+    return 1;
+  }
+
+  assert(solve_part2(test_input, test_input_length) == 31);
+  result = solve_part2(aoc_input, input_length);
+  if (result != -1) {
+    printf("Part 2 result! %d\n", result);
   } else {
     printf("something went wrong with conversion of chars to ints");
     return 1;
@@ -44,6 +53,41 @@ int solve_part1(char *input, ssize_t input_length)
   sort_array(right, lines);
 
   int result = calculate_result(left, right, lines);
+  return result;
+}
+
+int solve_part2(char *input, ssize_t input_length)
+{
+  int lines = get_number_lines(input, input_length);
+  int *left = calloc(lines, sizeof(int));
+  int *right = calloc(lines, sizeof(int));
+
+  if (split_input(input, input_length, left, right) == 1) {
+    printf("unable to convert characters to integer\n");
+    return -1;
+  }
+
+  // initialise array for holding the number of times each integer in the left
+  // column appears in the right column
+  int *occurrences = calloc(lines, sizeof(int));
+  int result = 0;
+
+  // iterate over the left column
+  for (int i = 0; i < lines; i++) {
+    // iterate over the right column for each iteration of the left column
+    for (int j = 0; j < lines; j++) {
+      // compare the integer in the left column with each integer in the right
+      // column, if they are the same add one to the occurrence at that index
+      if (left[i] == right[j]) {
+        occurrences[i]++;
+      }
+    }
+    // calculate the result by multiplying the value in the left column by how
+    // many times it occurrs in the right column and adding it to a running
+    // total
+    result += left[i] * occurrences[i];
+  }
+
   return result;
 }
 
