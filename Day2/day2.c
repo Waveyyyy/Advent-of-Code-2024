@@ -15,7 +15,7 @@ int main()
   char test_input[] =
     "7 6 4 2 1\n1 2 7 8 9\n9 7 6 2 1\n1 3 2 4 5\n8 6 4 4 1\n1 3 6 7 9\n";
   ssize_t test_input_length = strlen(test_input);
-  solve_part1(test_input, test_input_length);
+  assert(solve_part1(test_input, test_input_length) == 2);
 }
 
 int solve_part1(char *input, ssize_t input_length)
@@ -102,15 +102,64 @@ int split_row_to_digits(char *row, int *output)
     // convert the digit to an integer and add to the output array
     output[ctr] = strtol(digit, &endp, 10);
     if (endp == digit) {
-      return 1;
+      return -1;
     }
     /*     printf("digits[%d] = %d\n", ctr, output[ctr]); */
     digit = strtok(NULL, " ");
+    if (ctr == (&output)[1] - output) {
+      output = realloc(output, (ctr + 1) * sizeof(int));
+    }
     ctr++;
   }
-  return 0;
+  return ctr;
 }
 
 int check_safety(char **rows, ssize_t lines)
 {
+  int safe_reports = 0;
+  int *digits;
+  // iterate over each row
+  for (int i = 0; i < lines; i++) {
+    digits = malloc(10 * sizeof(int));
+    // get only the digits in a given row
+    int digit_length = split_row_to_digits(rows[i], digits);
+    if (digit_length == -1) {
+      printf("issue when converting digit char to integer\n");
+    }
+    int has_decreased = 0;
+    int has_increased = 0;
+    // iterate over the digits array, and check if it is considered 'safe'
+    for (int j = 0; j < digit_length; j++) {
+      printf("j=%d : j+1=%d\n", digits[j], digits[j + 1]);
+      // if the on the last digit in the row, we can consider the report 'safe'
+      if (j+1 == digit_length) {
+        safe_reports++;
+        break;
+      }
+      // if any 2 adjacent digits are equal, it is 'unsafe'
+      if (digits[j] == digits[j + 1]) {
+        break;
+      }
+      int difference = 0;
+      // check which is greater, the current value at index j or the next value
+      // at j+1 before calculating the difference between the two
+      if (digits[j] < digits[j + 1]) {
+        difference = digits[j + 1] - digits[j];
+        has_decreased++;
+      } else {
+        difference = digits[j] - digits[j + 1];
+        has_increased++;
+      }
+      // if the difference is NOT between 1 and 3 (inclusive) then it is 'unsafe'
+      if (!(difference >= 1 && difference <= 3)) {
+        break;
+      }
+      // if the row has both increased and decreased, it is 'unsafe'
+      if (has_increased != 0 && has_decreased != 0) {
+        break;
+      }
+    }
+  }
+  printf("%d\n", safe_reports);
+  return safe_reports;
 }
