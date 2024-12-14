@@ -92,11 +92,14 @@ int split_row_to_digits(char *row, int *output)
 {
   /*   printf("row: %s\n", row); */
   char *digit;
+  // get the first token (first digit)
   digit = strtok(row, " ");
   int ctr = 0;
+  // while there are still tokens available, continue looping
   while (digit != NULL) {
     char *endp = NULL;
     /*     printf("digit: %s\n", digit); */
+    // convert the digit to an integer and add to the output array
     output[ctr] = strtol(digit, &endp, 10);
     if (endp == digit) {
       return 1;
@@ -104,9 +107,6 @@ int split_row_to_digits(char *row, int *output)
     /*     printf("digits[%d] = %d\n", ctr, output[ctr]); */
     digit = strtok(NULL, " ");
     ctr++;
-  }
-  for (int i = 0; i < (strlen(row) - 1) / 2; i++) {
-    printf("%d", output[i]);
   }
   return 0;
 }
