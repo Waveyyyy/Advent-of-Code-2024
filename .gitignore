@@ -1,3 +1,4 @@
 *.o
 */solution
 */input.txt
+*/core.*
