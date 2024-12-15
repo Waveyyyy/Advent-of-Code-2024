@@ -10,6 +10,8 @@ void slice(char *result, char *source, ssize_t start, ssize_t end);
 int solve_part1(char *input, ssize_t input_length);
 int split_row_to_digits(char *rows, int *output);
 int check_safety(char **rows, ssize_t lines);
+int check_safety_part2(char **rows, ssize_t lines);
+int solve_part2(char *input, ssize_t input_length);
 
 int main()
 {
@@ -30,6 +32,16 @@ int solve_part1(char *input, ssize_t input_length)
   char **rows = malloc(lines * sizeof(char *));
   split_input(input, input_length, rows);
   int result = check_safety(rows, lines);
+  return result;
+}
+
+int solve_part2(char *input, ssize_t input_length)
+{
+  int lines = get_number_lines(input, input_length);
+  /*   printf("lines: %d\n", lines); */
+  char **rows = malloc(lines * sizeof(char *));
+  split_input(input, input_length, rows);
+  int result = check_safety_part2(rows, lines);
   return result;
 }
 
@@ -139,6 +151,58 @@ int check_safety(char **rows, ssize_t lines)
       printf("j=%d : j+1=%d\n", digits[j], digits[j + 1]);
       // if the on the last digit in the row, we can consider the report 'safe'
       if (j+1 == digit_length) {
+        safe_reports++;
+        break;
+      }
+      // if any 2 adjacent digits are equal, it is 'unsafe'
+      if (digits[j] == digits[j + 1]) {
+        break;
+      }
+      int difference = 0;
+      // check which is greater, the current value at index j or the next value
+      // at j+1 before calculating the difference between the two
+      if (digits[j] < digits[j + 1]) {
+        difference = digits[j + 1] - digits[j];
+        has_decreased++;
+      } else {
+        difference = digits[j] - digits[j + 1];
+        has_increased++;
+      }
+      // if the difference is NOT between 1 and 3 (inclusive) then it is 'unsafe'
+      if (!(difference >= 1 && difference <= 3)) {
+        break;
+      }
+      // if the row has both increased and decreased, it is 'unsafe'
+      if (has_increased != 0 && has_decreased != 0) {
+        break;
+      }
+    }
+  }
+  printf("%d\n", safe_reports);
+  return safe_reports;
+}
+
+int check_safety_part2(char **rows, ssize_t lines)
+{
+  int safe_reports = 0;
+  int *digits;
+  // iterate over each row
+  for (int i = 0; i < lines; i++) {
+    digits = malloc(10 * sizeof(int));
+    char *current_row = malloc(strlen(rows[i]));
+    strcpy(current_row, rows[i]);
+    // get only the digits in a given row
+    int digit_length = split_row_to_digits(rows[i], digits);
+    if (digit_length == -1) {
+      printf("issue when converting digit char to integer\n");
+    }
+
+    int has_decreased = 0;
+    int has_increased = 0;
+    // iterate over the digits array, and check if it is considered 'safe'
+    for (int j = 0; j < digit_length; j++) {
+      // if the on the last digit in the row, we can consider the report 'safe'
+      if (j + 1 == digit_length) {
         safe_reports++;
         break;
       }
