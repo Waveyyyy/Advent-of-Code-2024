@@ -233,3 +233,13 @@ int check_safety_part2(char **rows, ssize_t lines)
   printf("%d\n", safe_reports);
   return safe_reports;
 }
+
+int problem_dampner(int *digits, int index, ssize_t digits_length)
+{
+  int digits_copy[5];
+  // create a copy of the array so we dont break anything
+  memcpy(digits_copy, digits, digits_length * sizeof(int));
+  // remove the item at the index where the problem occurred
+  memmove(digits_copy + index, digits_copy + index + 1,
+          (--digits_length - index) * sizeof(int *));
+}
