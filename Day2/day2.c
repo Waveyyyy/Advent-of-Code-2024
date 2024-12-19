@@ -92,6 +92,11 @@ void split_input(char *pinput, ssize_t input_length, char **rows)
       // get the length of the slice from 0 to the first newline. this is the
       // entire row.
       slice_length = psubstr - &remaining_rows[0];
+      // if slice_length is less than zero, the splitting of input is done.
+      if (slice_length < 0)
+      {
+        return;
+      }
       // create substring variable of len slice_length
       substring = malloc(slice_length);
       // copy slice into substring
@@ -198,24 +203,30 @@ int check_safety_part2(char **rows, ssize_t lines)
       printf("issue when converting digit char to integer\n");
     }
 
+    int dampner = -1;
     int has_decreased = 0;
     int has_increased = 0;
     // iterate over the digits array, and check if it is considered 'safe'
     for (int j = 0; j < digit_length; j++) {
       // if the on the last digit in the row, we can consider the report 'safe'
-      if (j + 1 == digit_length || (dampner <= 1 && dampner >= 0)) {
+      if (j + 1 == digit_length && (dampner == 1 || dampner == -1)) {
         safe_reports++;
+        break;
+      }
+      if (j == digit_length && (dampner == 0)) {
         break;
       }
       // if any 2 adjacent digits are equal, it is 'unsafe'
       if (digits[j] == digits[j + 1]) {
-        if (dampner == -1) {
-          if ((dampner = problem_dampner(digits, j, digit_length)) == 1) {
-            dampner = problem_dampner(digits, j + 1, digit_length);
-          }
-        }
+        dampner = problem_dampner(digits, j, digit_length);
         if (dampner == 0) {
-          continue;
+          dampner = problem_dampner(digits, j + 1, digit_length);
+        }
+        if (dampner == 1) {
+          safe_reports++;
+          break;
+        } else if (dampner == 0) {
+          break;
         }
         dampner++;
         break;
@@ -225,33 +236,37 @@ int check_safety_part2(char **rows, ssize_t lines)
       // at j+1 before calculating the difference between the two
       if (digits[j] < digits[j + 1]) {
         difference = digits[j + 1] - digits[j];
-        has_decreased++;
+        has_increased++;
       } else {
         difference = digits[j] - digits[j + 1];
-        has_increased++;
+        has_decreased++;
       }
       // if the difference is NOT between 1 and 3 (inclusive) then it is 'unsafe'
       if (!(difference >= 1 && difference <= 3)) {
-        if (dampner == -1) {
-          if ((dampner = problem_dampner(digits, j, digit_length)) == 1) {
-            dampner = problem_dampner(digits, j + 1, digit_length);
-          }
-        }
+        dampner = problem_dampner(digits, j, digit_length);
         if (dampner == 0) {
-          continue;
+          dampner = problem_dampner(digits, j + 1, digit_length);
+        }
+        if (dampner == 1) {
+          safe_reports++;
+          break;
+        } else if (dampner == 0) {
+          break;
         }
         dampner++;
         break;
       }
       // if the row has both increased and decreased, it is 'unsafe'
       if (has_increased != 0 && has_decreased != 0) {
-        if (dampner == -1) {
-          if ((dampner = problem_dampner(digits, j, digit_length)) == 1) {
-            dampner = problem_dampner(digits, j + 1, digit_length);
-          }
-        }
+        dampner = problem_dampner(digits, j, digit_length);
         if (dampner == 0) {
-          continue;
+          dampner = problem_dampner(digits, j + 1, digit_length);
+        }
+        if (dampner == 1) {
+          safe_reports++;
+          break;
+        } else if (dampner == 0) {
+          break;
         }
         dampner++;
         break;
@@ -270,13 +285,14 @@ int problem_dampner(int *digits, int index, ssize_t digits_length)
   memcpy(digits_copy, digits, digits_length * sizeof(int));
   // remove the item at the index where the problem occurred
   memmove(digits_copy + index, digits_copy + index + 1,
-          (--digits_length - index) * sizeof(int *));
+          ((--digits_length) - index) * sizeof(int *));
+  int digits_copy_length = sizeof(digits_copy) / sizeof(digits_copy[0]);
   int has_decreased = 0;
   int has_increased = 0;
-  for (int j = 0; j < digits_length; j++) {
+  for (int j = 0; j < digits_copy_length; j++) {
     // if the on the last digit in the row, we can consider the report 'safe'
-    if (j + 1 == digits_length) {
-      return 0;
+    if (j + 1 == digits_copy_length) {
+      return 1;
     }
     // if any 2 adjacent digits are equal, it is 'unsafe'
     if (digits_copy[j] == digits_copy[j + 1]) {
@@ -287,10 +303,10 @@ int problem_dampner(int *digits, int index, ssize_t digits_length)
     // at j+1 before calculating the difference between the two
     if (digits_copy[j] < digits_copy[j + 1]) {
       difference = digits_copy[j + 1] - digits_copy[j];
-      has_decreased++;
+      has_increased++;
     } else {
       difference = digits_copy[j] - digits_copy[j + 1];
-      has_increased++;
+      has_decreased++;
     }
     // if the difference is NOT between 1 and 3 (inclusive) then it is 'unsafe'
     if (!(difference >= 1 && difference <= 3)) {
