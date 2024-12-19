@@ -25,7 +25,8 @@ int main()
   char *aoc_input;
   read_file(&aoc_input, "input.txt");
   ssize_t input_length = strlen(aoc_input);
-  solve_part1(aoc_input, input_length);
+  printf("part1 result!! %d\n", solve_part1(aoc_input, input_length));
+  printf("part2 result!! %d\n", solve_part2(aoc_input, input_length));
 }
 
 int solve_part1(char *input, ssize_t input_length)
@@ -202,73 +203,13 @@ int check_safety_part2(char **rows, ssize_t lines)
     if (digit_length == -1) {
       printf("issue when converting digit char to integer\n");
     }
-
-    int dampner = -1;
-    int has_decreased = 0;
-    int has_increased = 0;
-    // iterate over the digits array, and check if it is considered 'safe'
+    // iterate over the digits array, and check if the report is considered 'safe'
+    // additionally, check if removing one item from the array will make the
+    // report safe.
     for (int j = 0; j < digit_length; j++) {
       // if the on the last digit in the row, we can consider the report 'safe'
-      if (j + 1 == digit_length && (dampner == 1 || dampner == -1)) {
+      if (problem_dampner(digits, j, digit_length) == 1) {
         safe_reports++;
-        break;
-      }
-      if (j == digit_length && (dampner == 0)) {
-        break;
-      }
-      // if any 2 adjacent digits are equal, it is 'unsafe'
-      if (digits[j] == digits[j + 1]) {
-        dampner = problem_dampner(digits, j, digit_length);
-        if (dampner == 0) {
-          dampner = problem_dampner(digits, j + 1, digit_length);
-        }
-        if (dampner == 1) {
-          safe_reports++;
-          break;
-        } else if (dampner == 0) {
-          break;
-        }
-        dampner++;
-        break;
-      }
-      int difference = 0;
-      // check which is greater, the current value at index j or the next value
-      // at j+1 before calculating the difference between the two
-      if (digits[j] < digits[j + 1]) {
-        difference = digits[j + 1] - digits[j];
-        has_increased++;
-      } else {
-        difference = digits[j] - digits[j + 1];
-        has_decreased++;
-      }
-      // if the difference is NOT between 1 and 3 (inclusive) then it is 'unsafe'
-      if (!(difference >= 1 && difference <= 3)) {
-        dampner = problem_dampner(digits, j, digit_length);
-        if (dampner == 0) {
-          dampner = problem_dampner(digits, j + 1, digit_length);
-        }
-        if (dampner == 1) {
-          safe_reports++;
-          break;
-        } else if (dampner == 0) {
-          break;
-        }
-        dampner++;
-        break;
-      }
-      // if the row has both increased and decreased, it is 'unsafe'
-      if (has_increased != 0 && has_decreased != 0) {
-        dampner = problem_dampner(digits, j, digit_length);
-        if (dampner == 0) {
-          dampner = problem_dampner(digits, j + 1, digit_length);
-        }
-        if (dampner == 1) {
-          safe_reports++;
-          break;
-        } else if (dampner == 0) {
-          break;
-        }
-        dampner++;
         break;
       }
     }
@@ -317,5 +258,5 @@ int problem_dampner(int *digits, int index, ssize_t digits_length)
       break;
     }
   }
-  return 1;
+  return 0;
 }
