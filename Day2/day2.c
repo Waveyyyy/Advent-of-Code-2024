@@ -12,6 +12,7 @@ int split_row_to_digits(char *rows, int *output);
 int check_safety(char **rows, ssize_t lines);
 int check_safety_part2(char **rows, ssize_t lines);
 int solve_part2(char *input, ssize_t input_length);
+int problem_dampner(int *digits, int index, ssize_t digits_length);
 
 int main()
 {
@@ -19,6 +20,7 @@ int main()
     "7 6 4 2 1\n1 2 7 8 9\n9 7 6 2 1\n1 3 2 4 5\n8 6 4 4 1\n1 3 6 7 9\n";
   ssize_t test_input_length = strlen(test_input);
   assert(solve_part1(test_input, test_input_length) == 2);
+  assert(solve_part2(test_input, test_input_length) == 4);
 
   char *aoc_input;
   read_file(&aoc_input, "input.txt");
@@ -178,7 +180,6 @@ int check_safety(char **rows, ssize_t lines)
       }
     }
   }
-  printf("%d\n", safe_reports);
   return safe_reports;
 }
 
@@ -202,12 +203,21 @@ int check_safety_part2(char **rows, ssize_t lines)
     // iterate over the digits array, and check if it is considered 'safe'
     for (int j = 0; j < digit_length; j++) {
       // if the on the last digit in the row, we can consider the report 'safe'
-      if (j + 1 == digit_length) {
+      if (j + 1 == digit_length || (dampner <= 1 && dampner >= 0)) {
         safe_reports++;
         break;
       }
       // if any 2 adjacent digits are equal, it is 'unsafe'
       if (digits[j] == digits[j + 1]) {
+        if (dampner == -1) {
+          if ((dampner = problem_dampner(digits, j, digit_length)) == 1) {
+            dampner = problem_dampner(digits, j + 1, digit_length);
+          }
+        }
+        if (dampner == 0) {
+          continue;
+        }
+        dampner++;
         break;
       }
       int difference = 0;
@@ -222,24 +232,74 @@ int check_safety_part2(char **rows, ssize_t lines)
       }
       // if the difference is NOT between 1 and 3 (inclusive) then it is 'unsafe'
       if (!(difference >= 1 && difference <= 3)) {
+        if (dampner == -1) {
+          if ((dampner = problem_dampner(digits, j, digit_length)) == 1) {
+            dampner = problem_dampner(digits, j + 1, digit_length);
+          }
+        }
+        if (dampner == 0) {
+          continue;
+        }
+        dampner++;
         break;
       }
       // if the row has both increased and decreased, it is 'unsafe'
       if (has_increased != 0 && has_decreased != 0) {
+        if (dampner == -1) {
+          if ((dampner = problem_dampner(digits, j, digit_length)) == 1) {
+            dampner = problem_dampner(digits, j + 1, digit_length);
+          }
+        }
+        if (dampner == 0) {
+          continue;
+        }
+        dampner++;
         break;
       }
     }
   }
-  printf("%d\n", safe_reports);
   return safe_reports;
 }
 
 int problem_dampner(int *digits, int index, ssize_t digits_length)
 {
-  int digits_copy[5];
+  // initiate array for holding the copy without the problem digit, one
+  // smaller than the original digits array
+  int digits_copy[digits_length - 1];
   // create a copy of the array so we dont break anything
   memcpy(digits_copy, digits, digits_length * sizeof(int));
   // remove the item at the index where the problem occurred
   memmove(digits_copy + index, digits_copy + index + 1,
           (--digits_length - index) * sizeof(int *));
+  int has_decreased = 0;
+  int has_increased = 0;
+  for (int j = 0; j < digits_length; j++) {
+    // if the on the last digit in the row, we can consider the report 'safe'
+    if (j + 1 == digits_length) {
+      return 0;
+    }
+    // if any 2 adjacent digits are equal, it is 'unsafe'
+    if (digits_copy[j] == digits_copy[j + 1]) {
+      break;
+    }
+    int difference = 0;
+    // check which is greater, the current value at index j or the next value
+    // at j+1 before calculating the difference between the two
+    if (digits_copy[j] < digits_copy[j + 1]) {
+      difference = digits_copy[j + 1] - digits_copy[j];
+      has_decreased++;
+    } else {
+      difference = digits_copy[j] - digits_copy[j + 1];
+      has_increased++;
+    }
+    // if the difference is NOT between 1 and 3 (inclusive) then it is 'unsafe'
+    if (!(difference >= 1 && difference <= 3)) {
+      break;
+    }
+    // if the row has both increased and decreased, it is 'unsafe'
+    if (has_increased != 0 && has_decreased != 0) {
+      break;
+    }
+  }
+  return 1;
 }
