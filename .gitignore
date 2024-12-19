@@ -1,4 +1,5 @@
 *.o
 */solution
-*/input.txt
+*/*.txt
 */core.*
+*/.gdb_history
