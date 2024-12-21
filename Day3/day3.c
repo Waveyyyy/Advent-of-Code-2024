@@ -127,7 +127,17 @@ int get_valid_muls(const char *row, int length, char ***valid_muls,
       free(valid_mul);
       pos = substr + 4 - row;
       continue;
-    }    /*     printf("valid_mul: %s\n", valid_mul); */
+    }
+    if (get_digits_and_mul(substr, substr_end) == -1) {
+      fprintf(stderr,
+              "one side of mul instruction contains invalid digits: %s\n",
+              valid_mul);
+      // free valid_mul before going to next iteration
+      free(valid_mul);
+      pos = substr + 4 - row;
+      continue;
+    }
+    /*     printf("valid_mul: %s\n", valid_mul); */
     num_mul++;
     *valid_muls =
       realloc(*valid_muls, (len_valid_muls + num_mul) * sizeof(char *));
@@ -140,6 +150,69 @@ int get_valid_muls(const char *row, int length, char ***valid_muls,
     pos = substr_end - row + 1;
   }
   return num_mul;
+}
+
+int get_digits_and_mul(char *substr_start, char *substr_end)
+{
+  // get pointer to where each marker character is, that is the following 3 - (,)
+  char *open_paren = strchr(substr_start, '(') + 1;
+  char *comma = strchr(substr_start, ',');
+  char *close_paren = strchr(substr_start, ')');
+
+  ssize_t left_len = comma - open_paren;
+  char *left_str = malloc(left_len + 1);
+  if (left_str == NULL) {
+    perror("Malloc failed to alloc memory");
+    exit(1);
+  }
+  // get the string from the opening parentheses to the comma.
+  // e.g mul(li457, 456) would result in left_str = "li457"
+  slice(left_str, open_paren, 0, left_len);
+
+  char *endp = NULL;
+  int left = strtol(left_str, &endp, 10);
+  // attempt to convert the left_str to a long int
+  // - check if strtol consumed the entire string (endp will point to non-numeric
+  // characters so check with *endp != '\0')
+  // - check that strtol converted something (endp will be the same as left_str if
+  // not)
+  //
+  // e.g mul(li457, 456) will be fail for the left_str as there are non-numeric
+  // characters, therefore *endp != '\0' and endp == left_str as it does not
+  // start with a digit.
+  if (*endp != '\0' || endp == left_str) {
+    free(left_str);
+    return -1;
+  }
+  free(left_str);
+
+  ssize_t right_len = close_paren - comma - 1;
+  char *right_str = malloc(right_len + 1);
+  if (right_str == NULL) {
+    perror("Malloc failed to alloc memory");
+    exit(1);
+  }
+  // get the string from the opening parentheses to the comma.
+  // e.g mul(li457, 456) would result in right_str = "456"
+  slice(right_str, comma + 1, 0, right_len);
+
+  endp = NULL;
+  int right = strtol(right_str, &endp, 10);
+  // attempt to convert the left_str to a long int
+  // - check if strtol consumed the entire string (endp will point to non-numeric
+  // characters so check with *endp != '\0')
+  // - check that strtol converted something (endp will be the same as left_str if
+  // not)
+  //
+  // e.g mul(li457, 456) will be fine for the right_str as there are no
+  // non-numeric characters in the string so *endp == '\0' and endp != right_str
+  if (*endp != '\0' || endp == right_str) {
+    free(right_str);
+    return -1;
+  }
+  free(right_str);
+
+  return left * right;
 }
 
 void split_rows(const char *pinput, ssize_t input_length, char **rows)
