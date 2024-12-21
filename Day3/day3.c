@@ -8,7 +8,7 @@ int get_number_lines(const char *pinput, ssize_t input_length);
 void split_rows(const char *pinput, ssize_t input_length, char **rows);
 void slice(char *result, const char *source, ssize_t start, ssize_t end);
 int calculate_result_of_muls(char **rows, int lines);
-int get_valid_muls(const char *row, int length, char **valid_muls);
+int get_valid_muls(const char *row, int length, char ***valid_muls);
 
 int main()
 {
@@ -51,23 +51,31 @@ int get_number_lines(const char *pinput, ssize_t input_length)
 
 int calculate_result_of_muls(char **rows, int lines)
 {
-  printf("lines: %d\n", lines);
+  char **valid_muls = NULL;
+  int num_muls;
+  int valid_muls_counter = 0;
   for (int i = 0; i < lines; i++) {
     int row_len = strlen(rows[i]);
-    get_valid_muls(rows[i], row_len);
+    num_muls = get_valid_muls(rows[i], row_len, &valid_muls);
+
+    if (num_muls < 0) {
+      continue;
+    }
+    valid_muls_counter += num_muls;
+  }
+  if (valid_muls != NULL) {
+    for (int i = 0; i < valid_muls_counter; i++) {
+      free(valid_muls[i]);
+    }
+    free(valid_muls);
   }
 }
 
-int get_valid_muls(const char *row, int length)
+int get_valid_muls(const char *row, int length, char ***valid_muls)
 {
-  char **valid_muls = calloc(1, sizeof(char *));
+  int num_mul = 0;
   int pos = 0;
   while (pos < length) {
-    if (length == ((&valid_muls)[0] - valid_muls)) {
-      valid_muls = realloc(valid_muls, (length + 1) * sizeof(char *));
-    }
-
-    printf("row + pos: %s\n", row + pos);
     // check for the start of a valid mul instruction
     char *substr = strstr(row + pos, "mul(");
     if (substr == NULL) // if no mul instructions were found, then we can break
@@ -78,17 +86,45 @@ int get_valid_muls(const char *row, int length)
     // check for the end of a valid mul instruction
     char *substr_end = strstr(substr, ")");
     if (substr_end == NULL) // if no end to a mul struction was found, it is
-    // invalid and we can return
+    // invalid and we can move on
     {
       fprintf(stderr, "Unmatched parenthesis for mul instruction\n");
+      // free memory on error
+      for (int i = 0; i < num_mul; i++) {
+        free((*valid_muls)[i]);
+      }
+      free(*valid_muls);
       return -1;
     }
+
     ssize_t slice_length = substr_end - substr + 1;
     char *valid_mul = malloc(slice_length + 1);
+    if (valid_mul == NULL) {
+      perror("Malloc failed to alloc memory");
+      exit(1);
+    }
     slice(valid_mul, substr, 0, slice_length);
+
+    char *next_mul = strstr(valid_mul + 1, "mul(");
+    if (next_mul != NULL) {
+      fprintf(stderr, "Mul instruction found within parentheses: %s\n",
+              valid_mul);
+      // free valid_mul before going to next iteration
+      free(valid_mul);
+      pos = substr + 4 - row;
+      continue;
+    }
+    num_mul++;
+    *valid_muls = realloc(*valid_muls, num_mul * sizeof(char *));
+    if (valid_muls == NULL) {
+      perror("Malloc failed to alloc memory");
+      exit(1);
+    }
+    (*valid_muls)[num_mul - 1] = valid_mul;
 
     pos = substr_end - row + 1;
   }
+  return num_mul;
 }
 
 void split_rows(const char *pinput, ssize_t input_length, char **rows)
