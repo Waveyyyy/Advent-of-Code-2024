@@ -10,8 +10,8 @@ ssize_t read_file(char **buffer, char *file_name)
   file_ptr = fopen(file_name, "r");
 
   // check if the file exists
-  if (file_ptr == NULL)
-  {
+  if (file_ptr == NULL) {
+    perror("fopen failed to open the file");
     return -1;
   }
 
@@ -21,21 +21,26 @@ ssize_t read_file(char **buffer, char *file_name)
   // fseek function.
   // this gives us the length of the file in bytes
   ssize_t len_bytes = ftell(file_ptr);
+  if (len_bytes < 0) {
+    perror("fseek/ftell failed");
+    // close the file_ptr before returning
+    fclose(file_ptr);
+    return -1;
+  }
 
   // finally, reset the stream position to the start of the file
   fseek(file_ptr, 0L, SEEK_SET);
 
   // get enough memory for the buffer to be able to hold the file contents
-  *buffer = (char*)calloc(len_bytes, sizeof(char));
-
+  *buffer = (char *)calloc((len_bytes + 1), sizeof(char));
   // check for memory allocation error
-  if (*buffer == NULL)
-  {
+  if (*buffer == NULL) {
     return -1;
   }
 
   fread(*buffer, sizeof(char), len_bytes, file_ptr);
   fclose(file_ptr);
+  (*buffer)[len_bytes] = '\0'; // NULL terminate the buffer
 
   return len_bytes;
 }
