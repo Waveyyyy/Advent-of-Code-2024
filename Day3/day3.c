@@ -21,7 +21,11 @@ int solve_part1(char *input, ssize_t input_length)
   char **rows = malloc(lines * sizeof(char *));
   split_rows(input, input_length, rows);
   int result = 0;
-
+  // free malloc memory for rows
+  for (int i = 0; i < lines; i++) {
+    free(rows[i]);
+  }
+  free(rows);
   return result;
 }
 
