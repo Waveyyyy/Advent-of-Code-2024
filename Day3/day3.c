@@ -40,50 +40,30 @@ int get_number_lines(char *pinput, ssize_t input_length)
 void split_rows(char *pinput, ssize_t input_length, char **rows)
 {
   int cur_line = 0;
-  for (int pos = 0; pos < input_length; pos++) {
+  ssize_t pos = 0;
+  // loop until pos is >= input_length
+  while (pos < input_length) {
     char *psubstr;
-    char *remaining_rows;
     ssize_t slice_length;
     char *substring;
-    /*     printf("pos: %d\n", pos); */
-    // get slice of string from pos up to newline for each line
-    if (pos == 0) {
-      // get pointer to the first occurrence of a newline
-      psubstr = strstr(pinput, "\n");
-      // get the length of the slice of the first row
-      slice_length = psubstr - &pinput[0];
-      /*       printf("%p - %p = %ld", psubstr, &pinput[0], psubstr - &pinput[0]); */
-      // create substring variable of len slice_length
-      substring = malloc(slice_length);
-      // copy slice into substring
-      slice(substring, pinput, 0, slice_length);
+
+    printf("pinput + pos (%zd): %s\n", pos, pinput + pos);
+    // get the first newline character after pinput + pos
+    psubstr = strchr(pinput + pos, '\n');
+    if (psubstr == NULL) // in this case, we are on the last line (one that has
+    // no newline)
+    {
+      // if input_length is 71, pos will be 0, therefore slice length is the
+      // length of the whole line
+      slice_length = input_length - pos;
     } else {
-      // allocate enough memory to hold the remaining rows of input
-      remaining_rows = malloc(input_length - pos);
-      // add the remaining rows of input to remaining_rows
-      slice(remaining_rows, pinput, pos, input_length - pos);
-      /*       printf("remaining_rows:\n%s\n", remaining_rows); */
-      // get a pointer to the first newline in the remaining rows
-      psubstr = strstr(remaining_rows, "\n");
-      /*       printf("length of slice: %p - %p = %lu\n", psubstr, &remaining_rows[0], */
-      /*              psubstr - &remaining_rows[0]); */
-      // get the length of the slice from 0 to the first newline. this is the
-      // entire row.
-      slice_length = psubstr - &remaining_rows[0];
-      // if slice_length is less than zero, the splitting of input is done.
-      if (slice_length < 0) {
-        return;
-      }
-      // create substring variable of len slice_length
-      substring = malloc(slice_length);
-      // copy slice into substring
-      slice(substring, remaining_rows, 0, slice_length);
+      // if there is a newline we want to set the slice length to be the
+      // distance between where the newline occurs (the end of our line) and our
+      // current position within the string
+      slice_length = psubstr - (pinput + pos);
     }
-    /*     printf("substring: %s\n",substring); */
-    rows[cur_line] = substring;
-    /*     printf("rows[%d]: %s", cur_line, rows[cur_line]); */
-    pos += slice_length;
-    cur_line++;
+    // increment pos by slice_length + 1
+    pos += slice_length + 1;
   }
 }
 
