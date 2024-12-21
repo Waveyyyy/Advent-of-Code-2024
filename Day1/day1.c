@@ -26,6 +26,7 @@ int main()
     printf("Part 1 result! %d\n", result);
   } else {
     printf("something went wrong with conversion of chars to ints");
+    free(aoc_input);
     return 1;
   }
 
@@ -35,8 +36,10 @@ int main()
     printf("Part 2 result! %d\n", result);
   } else {
     printf("something went wrong with conversion of chars to ints");
+    free(aoc_input);
     return 1;
   }
+  free(aoc_input);
 }
 
 int solve_part1(char *input, ssize_t input_length)
@@ -53,6 +56,8 @@ int solve_part1(char *input, ssize_t input_length)
   sort_array(right, lines);
 
   int result = calculate_result(left, right, lines);
+  free(left);
+  free(right);
   return result;
 }
 
@@ -88,6 +93,9 @@ int solve_part2(char *input, ssize_t input_length)
     result += left[i] * occurrences[i];
   }
 
+  free(left);
+  free(right);
+  free(occurrences);
   return result;
 }
 
@@ -136,6 +144,7 @@ int split_input(char *pinput, ssize_t input_length, int *left, int *right)
       substring = malloc(slice_length);
       // copy slice into substring
       slice(substring, remaining_rows, 0, slice_length);
+      free(remaining_rows);
     }
     printf("%s\n", substring);
 
@@ -174,6 +183,9 @@ int split_input(char *pinput, ssize_t input_length, int *left, int *right)
     pos += slice_length;
     // iterate cur_line
     cur_line++;
+    free(substring);
+    free(left_chars);
+    free(right_chars);
   }
   return 0;
 }
