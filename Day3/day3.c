@@ -1,4 +1,5 @@
 #include "../utils/utils.h"
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,7 +18,7 @@ int main()
   char test_input[] =
     "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))";
   int test_input_length = strlen(test_input);
-  printf("part1 result!!! %d\n", solve_part1(test_input, test_input_length));
+  assert(solve_part1(test_input, test_input_length) == 161);
 }
 
 int solve_part1(char *input, ssize_t input_length)
@@ -25,7 +26,7 @@ int solve_part1(char *input, ssize_t input_length)
   int lines = get_number_lines(input, input_length);
   char **rows = malloc(lines * sizeof(char *));
   split_rows(input, input_length, rows);
-  int result = 0;
+  int result = calculate_result_of_muls(rows, lines);
   // free malloc memory for rows
   for (int i = 0; i < lines; i++) {
     free(rows[i]);
@@ -76,8 +77,8 @@ int calculate_result_of_muls(char **rows, int lines)
   }
 }
 
-int get_valid_muls(const char *row, int length, char ***valid_muls,
-                   int len_valid_muls)
+int get_valid_muls(const char *row, int length, int **valid_muls,
+                   int *len_valid_muls)
 {
   int num_mul = 0;
   int pos = 0;
