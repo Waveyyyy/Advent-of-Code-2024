@@ -27,6 +27,7 @@ int main()
   ssize_t input_length = strlen(aoc_input);
   printf("part1 result!! %d\n", solve_part1(aoc_input, input_length));
   printf("part2 result!! %d\n", solve_part2(aoc_input, input_length));
+  free(aoc_input);
 }
 
 int solve_part1(char *input, ssize_t input_length)
@@ -35,6 +36,7 @@ int solve_part1(char *input, ssize_t input_length)
   char **rows = malloc(lines * sizeof(char *));
   split_input(input, input_length, rows);
   int result = check_safety(rows, lines);
+  free(rows);
   return result;
 }
 
@@ -45,6 +47,7 @@ int solve_part2(char *input, ssize_t input_length)
   char **rows = malloc(lines * sizeof(char *));
   split_input(input, input_length, rows);
   int result = check_safety_part2(rows, lines);
+  free(rows);
   return result;
 }
 
@@ -102,6 +105,7 @@ void split_input(char *pinput, ssize_t input_length, char **rows)
       substring = malloc(slice_length);
       // copy slice into substring
       slice(substring, remaining_rows, 0, slice_length);
+      free(remaining_rows);
     }
     rows[cur_line] = substring;
     pos += slice_length;
@@ -186,6 +190,7 @@ int check_safety(char **rows, ssize_t lines)
       }
     }
   }
+  free(digits);
   return safe_reports;
 }
 
@@ -196,8 +201,6 @@ int check_safety_part2(char **rows, ssize_t lines)
   // iterate over each row
   for (int i = 0; i < lines; i++) {
     digits = malloc(10 * sizeof(int));
-    char *current_row = malloc(strlen(rows[i]));
-    strcpy(current_row, rows[i]);
     // get only the digits in a given row
     int digit_length = split_row_to_digits(rows[i], digits);
     if (digit_length == -1) {
@@ -214,6 +217,7 @@ int check_safety_part2(char **rows, ssize_t lines)
       }
     }
   }
+  free(digits);
   return safe_reports;
 }
 
