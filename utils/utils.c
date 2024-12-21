@@ -35,10 +35,24 @@ ssize_t read_file(char **buffer, char *file_name)
   *buffer = (char *)calloc((len_bytes + 1), sizeof(char));
   // check for memory allocation error
   if (*buffer == NULL) {
+    perror("calloc failed to alloc memory");
+    fclose(file_ptr);
     return -1;
   }
 
-  fread(*buffer, sizeof(char), len_bytes, file_ptr);
+  size_t bytes_read = fread(*buffer, sizeof(char), len_bytes, file_ptr);
+  // check for errors with fread
+  if (ferror(file_ptr)) {
+    perror("fread failed to read into the buffer");
+    free(*buffer);
+    fclose(file_ptr);
+    return -1;
+  }
+  if (bytes_read != (size_t)len_bytes) {
+    fprintf(stderr, "Warning: short read (%zu bytes read, expected %zd)\n",
+            bytes_read, len_bytes);
+  }
+
   fclose(file_ptr);
   (*buffer)[len_bytes] = '\0'; // NULL terminate the buffer
 
