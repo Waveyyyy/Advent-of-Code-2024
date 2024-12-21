@@ -119,6 +119,15 @@ int get_valid_muls(const char *row, int length, char ***valid_muls,
       pos = substr + 4 - row;
       continue;
     }
+    next_mul = strstr(valid_mul + 1, ",");
+    if (next_mul == NULL) {
+      fprintf(stderr, "Comma not found within mul instruction: %s\n",
+              valid_mul);
+      // free valid_mul before going to next iteration
+      free(valid_mul);
+      pos = substr + 4 - row;
+      continue;
+    }    /*     printf("valid_mul: %s\n", valid_mul); */
     num_mul++;
     *valid_muls =
       realloc(*valid_muls, (len_valid_muls + num_mul) * sizeof(char *));
