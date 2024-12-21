@@ -47,7 +47,6 @@ void split_rows(char *pinput, ssize_t input_length, char **rows)
     ssize_t slice_length;
     char *substring;
 
-    printf("pinput + pos (%zd): %s\n", pos, pinput + pos);
     // get the first newline character after pinput + pos
     psubstr = strchr(pinput + pos, '\n');
     if (psubstr == NULL) // in this case, we are on the last line (one that has
@@ -62,12 +61,25 @@ void split_rows(char *pinput, ssize_t input_length, char **rows)
       // current position within the string
       slice_length = psubstr - (pinput + pos);
     }
-    // increment pos by slice_length + 1
+
+    // allocate enough memory for the slice containing the desired row
+    substring = malloc(slice_length + 1); // one extra for null terminator
+    if (substring == NULL) {
+      perror("Malloc failed to alloc memory");
+      exit(1);
+    }
+    // copy the row into the substring variable
+    slice(substring, pinput + pos, 0, slice_length);
+    // add the substring to rows array at the current line number
+    rows[cur_line] = substring;
+    // increment pos by slice_length + 1 to skip the newline
     pos += slice_length + 1;
+    cur_line++;
   }
 }
 
 void slice(char *result, char *source, ssize_t start, ssize_t end)
 {
   strncpy(result, source + start, end);
+  result[end] = '\0';
 }
