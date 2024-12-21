@@ -12,6 +12,10 @@ int calculate_result_of_muls(char **rows, int lines);
 int get_valid_muls(const char *row, int length, int **valid_muls,
                    int *len_valid_muls);
 int get_digits_and_mul(char *substr_start, char *substr_end);
+int get_valid_muls_part2(const char *row, int length, int **valid_muls,
+                         int *len_valid_muls);
+int calculate_result_of_muls_part2(char **rows, int lines);
+int solve_part2(char *input, ssize_t length);
 
 int main()
 {
@@ -34,6 +38,21 @@ int solve_part1(char *input, ssize_t input_length)
   free(rows);
   return result;
 }
+
+int solve_part2(char *input, ssize_t input_length)
+{
+  int lines = get_number_lines(input, input_length);
+  char **rows = malloc(lines * sizeof(char *));
+  split_rows(input, input_length, rows);
+  int result = calculate_result_of_muls_part2(rows, lines);
+  // free malloc memory for rows
+  for (int i = 0; i < lines; i++) {
+    free(rows[i]);
+  }
+  free(rows);
+  return result;
+}
+
 
 int get_number_lines(const char *pinput, ssize_t input_length)
 {
@@ -259,6 +278,119 @@ void split_rows(const char *pinput, ssize_t input_length, char **rows)
     pos += slice_length + 1;
     cur_line++;
   }
+}
+
+int calculate_result_of_muls_part2(char **rows, int lines)
+{
+  /*   printf("lines: %d\n", lines); */
+  int *valid_muls = NULL;
+  int num_muls;
+  int valid_muls_counter = 0;
+  for (int i = 0; i < lines; i++) {
+    int row_len = strlen(rows[i]);
+    /*     printf("row_len: %d\n", row_len); */
+    num_muls =
+      get_valid_muls_part2(rows[i], row_len, &valid_muls, &valid_muls_counter);
+
+    if (num_muls < 0) {
+      continue;
+    }
+    valid_muls_counter += num_muls;
+  }
+  /*   printf("num_muls: %d\n", valid_muls_counter); */
+  int result = 0;
+  if (valid_muls != NULL) {
+    for (int i = 0; i < valid_muls_counter; i++) {
+      /*       printf("valid_mul[%d]: %d\n", i, valid_muls[i]); */
+      result += valid_muls[i];
+    }
+    free(valid_muls);
+    valid_muls = NULL;
+  }
+  return result;
+}
+
+int get_valid_muls_part2(const char *row, int length, int **valid_muls,
+                         int *len_valid_muls)
+{
+  int num_mul = 0;
+  int pos = 0;
+  while (pos < length) {
+    /*     printf("row + pos: %s\n", row + pos); */
+    // check for the start of a valid mul instruction
+    char *substr = strstr(row + pos, "mul(");
+    if (substr == NULL) // if no mul instructions were found, then we can break
+    {
+      fprintf(stderr, "No mul instructions\n");
+      break;
+    }
+    // check for the end of a valid mul instruction
+    /*     printf("substr_end: %s\n", substr); */
+    char *substr_end = strstr(substr, ")");
+    if (substr_end == NULL) // if no end to a mul struction was found, it is
+    // invalid and we can move on
+    {
+      fprintf(stderr, "Unmatched parenthesis for mul instruction\n");
+      // free memory on error
+      for (int i = 0; i < num_mul; i++) {
+        free(valid_muls[i]);
+      }
+      free(*valid_muls);
+      valid_muls = NULL;
+      return -1;
+    }
+
+    ssize_t slice_length = substr_end - substr + 1;
+    char *valid_mul = malloc(slice_length + 1);
+    if (valid_mul == NULL) {
+      perror("Malloc failed to alloc memory");
+      exit(1);
+    }
+    slice(valid_mul, substr, 0, slice_length);
+
+    /*     printf("next_mul: %s\n", valid_mul); */
+    char *next_mul = strstr(valid_mul + 1, "mul(");
+    if (next_mul != NULL) {
+      fprintf(stderr, "Mul instruction found within parentheses: %s\n",
+              valid_mul);
+      // free valid_mul before going to next iteration
+      free(valid_mul);
+      pos = substr + 4 - row;
+      continue;
+    }
+    next_mul = strstr(valid_mul + 1, ",");
+    if (next_mul == NULL) {
+      fprintf(stderr, "Comma not found within mul instruction: %s\n",
+              valid_mul);
+      // free valid_mul before going to next iteration
+      free(valid_mul);
+      pos = substr + 4 - row;
+      continue;
+    }
+    int calc_result = get_digits_and_mul(substr, substr_end);
+    if (calc_result == -1) {
+      fprintf(stderr,
+              "one side of mul instruction contains invalid digits: %s\n",
+              valid_mul);
+      // free valid_mul before going to next iteration
+      free(valid_mul);
+      pos = substr + 4 - row;
+      continue;
+    }
+    /*     printf("valid_mul: %s\n", valid_mul); */
+    num_mul++;
+    *valid_muls =
+      realloc(*valid_muls, (*len_valid_muls + num_mul) * sizeof(int));
+    if (valid_muls == NULL) {
+      perror("Malloc failed to alloc memory");
+      exit(1);
+    }
+    (*valid_muls)[(*len_valid_muls + num_mul) - 1] = calc_result;
+
+    pos = substr_end - row + 1;
+    free(valid_mul);
+  }
+  return num_mul;
 }
 
 void slice(char *result, const char *source, ssize_t start, ssize_t end)
