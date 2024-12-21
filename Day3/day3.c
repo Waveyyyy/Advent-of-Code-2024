@@ -4,7 +4,7 @@
 #include <string.h>
 
 int solve_part1(char *input, ssize_t length);
-int get_number_lines(char *pinput, ssize_t input_length);
+int get_number_lines(const char *pinput, ssize_t input_length);
 void split_rows(const char *pinput, ssize_t input_length, char **rows);
 void slice(char *result, const char *source, ssize_t start, ssize_t end);
 
@@ -30,7 +30,7 @@ int solve_part1(char *input, ssize_t input_length)
   return result;
 }
 
-int get_number_lines(char *pinput, ssize_t input_length)
+int get_number_lines(const char *pinput, ssize_t input_length)
 {
   // get number of lines in the input
   int lines = 0;
@@ -39,6 +39,11 @@ int get_number_lines(char *pinput, ssize_t input_length)
       ++lines;
     }
   }
+  // check if the input is NON-EMPTY, but there are no newlines
+  if (lines == 0 && input_length > 0) {
+    lines = 1;
+  }
+  /*   printf("%d\n", lines); */
   return lines;
 }
 
