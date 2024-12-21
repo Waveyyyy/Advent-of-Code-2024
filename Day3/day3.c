@@ -1,11 +1,12 @@
 #include "../utils/utils.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 int solve_part1(char *input, ssize_t length);
 int get_number_lines(char *pinput, ssize_t input_length);
-void split_rows(char *pinput, ssize_t input_length, char **rows);
-void slice(char *result, char *source, ssize_t start, ssize_t end);
+void split_rows(const char *pinput, ssize_t input_length, char **rows);
+void slice(char *result, const char *source, ssize_t start, ssize_t end);
 
 int main()
 {
@@ -41,7 +42,7 @@ int get_number_lines(char *pinput, ssize_t input_length)
   return lines;
 }
 
-void split_rows(char *pinput, ssize_t input_length, char **rows)
+void split_rows(const char *pinput, ssize_t input_length, char **rows)
 {
   int cur_line = 0;
   ssize_t pos = 0;
@@ -82,7 +83,7 @@ void split_rows(char *pinput, ssize_t input_length, char **rows)
   }
 }
 
-void slice(char *result, char *source, ssize_t start, ssize_t end)
+void slice(char *result, const char *source, ssize_t start, ssize_t end)
 {
   strncpy(result, source + start, end);
   result[end] = '\0';
