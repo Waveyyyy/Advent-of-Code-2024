@@ -29,7 +29,7 @@ int get_number_lines(char *pinput, ssize_t input_length)
 {
   // get number of lines in the input
   int lines = 0;
-  for (int i = 0; i < strlen(pinput); i++) {
+  for (int i = 0; i < input_length; i++) {
     if (pinput[i] == '\n') {
       ++lines;
     }
