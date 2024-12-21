@@ -8,7 +8,8 @@ int get_number_lines(const char *pinput, ssize_t input_length);
 void split_rows(const char *pinput, ssize_t input_length, char **rows);
 void slice(char *result, const char *source, ssize_t start, ssize_t end);
 int calculate_result_of_muls(char **rows, int lines);
-int get_valid_muls(const char *row, int length, char ***valid_muls);
+int get_valid_muls(const char *row, int length, char ***valid_muls,
+                   int len_valid_muls);
 
 int main()
 {
@@ -56,7 +57,8 @@ int calculate_result_of_muls(char **rows, int lines)
   int valid_muls_counter = 0;
   for (int i = 0; i < lines; i++) {
     int row_len = strlen(rows[i]);
-    num_muls = get_valid_muls(rows[i], row_len, &valid_muls);
+    num_muls =
+      get_valid_muls(rows[i], row_len, &valid_muls, valid_muls_counter);
 
     if (num_muls < 0) {
       continue;
@@ -68,10 +70,12 @@ int calculate_result_of_muls(char **rows, int lines)
       free(valid_muls[i]);
     }
     free(valid_muls);
+    valid_muls = NULL;
   }
 }
 
-int get_valid_muls(const char *row, int length, char ***valid_muls)
+int get_valid_muls(const char *row, int length, char ***valid_muls,
+                   int len_valid_muls)
 {
   int num_mul = 0;
   int pos = 0;
@@ -94,6 +98,7 @@ int get_valid_muls(const char *row, int length, char ***valid_muls)
         free((*valid_muls)[i]);
       }
       free(*valid_muls);
+      *valid_muls = NULL;
       return -1;
     }
 
@@ -115,12 +120,13 @@ int get_valid_muls(const char *row, int length, char ***valid_muls)
       continue;
     }
     num_mul++;
-    *valid_muls = realloc(*valid_muls, num_mul * sizeof(char *));
+    *valid_muls =
+      realloc(*valid_muls, (len_valid_muls + num_mul) * sizeof(char *));
     if (valid_muls == NULL) {
       perror("Malloc failed to alloc memory");
       exit(1);
     }
-    (*valid_muls)[num_mul - 1] = valid_mul;
+    (*valid_muls)[(len_valid_muls + num_mul) - 1] = valid_mul;
 
     pos = substr_end - row + 1;
   }
