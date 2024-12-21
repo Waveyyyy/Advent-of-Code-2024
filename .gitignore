@@ -1,5 +1,5 @@
 *.o
 */solution
 */*.txt
-*/core.*
+*/*core.*
 */.gdb_history

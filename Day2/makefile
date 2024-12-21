@@ -10,4 +10,4 @@ solution: $(OBJ)
 	gcc $(CFLAGS_DBG) -o $@ $^
 
 clean:
-	rm *.o ../utils/*.o
+	rm *.o ../utils/*.o ./*core.*
