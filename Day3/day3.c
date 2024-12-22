@@ -20,10 +20,22 @@ char *rev_strstr(const char *haystack, const char *needle);
 
 int main()
 {
-  char test_input[] =
+  char test_input_part1[] =
     "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))";
-  int test_input_length = strlen(test_input);
-  assert(solve_part1(test_input, test_input_length) == 161);
+  int test_input_part1_length = strlen(test_input_part1);
+
+  char test_input_part2[] =
+    "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))";
+  int test_input_part2_length = strlen(test_input_part2);
+  assert(solve_part2(test_input_part2, test_input_part2_length) == 48);
+  assert(solve_part1(test_input_part1, test_input_part1_length) == 161);
+
+  char *aoc_input;
+  read_file(&aoc_input, "input.txt");
+  int aoc_input_length = strlen(aoc_input);
+  printf("part1 result!!! %d\n", solve_part1(aoc_input, aoc_input_length));
+  printf("part2 result!!! %d\n", solve_part2(aoc_input, aoc_input_length));
+  free(aoc_input);
 }
 
 int solve_part1(char *input, ssize_t input_length)
