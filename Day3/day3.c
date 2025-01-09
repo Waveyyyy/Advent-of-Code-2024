@@ -27,8 +27,10 @@ int main()
   char test_input_part2[] =
     "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))";
   int test_input_part2_length = strlen(test_input_part2);
-  assert(solve_part2(test_input_part2, test_input_part2_length) == 48);
   assert(solve_part1(test_input_part1, test_input_part1_length) == 161);
+    assert(solve_part2(test_input_part2, test_input_part2_length) == 48);
+  printf("part2 result!!! %d\n",
+         solve_part2(test_input_part2, test_input_part2_length));
 
   char *aoc_input;
   read_file(&aoc_input, "input.txt");
@@ -245,8 +247,8 @@ int get_digits_and_mul(char *substr_start, char *substr_end)
     free(right_str);
     return -1;
   }
-  free(right_str);
 
+  free(right_str);
   return left * right;
 }
 
@@ -333,17 +335,36 @@ int get_valid_muls_part2(const char *row, int length, int **valid_muls,
       fprintf(stderr, "No mul instructions\n");
       break;
     }
+
+    // get the distance from the current pos to the start of the mul instruction
+    // substring
+    int dist_to_mul = substr - (row + pos);
+    char *pos_to_mul_substr = malloc(dist_to_mul + 1);
+    if (pos_to_mul_substr == NULL) {
+      perror("Malloc failed to alloc memory");
+      exit(1);
+    }
+    slice(pos_to_mul_substr, row + pos, 0, dist_to_mul);
+
+    // search in reverse through pos_to_mul_substr for the do() instruction
+    char *do_mul = rev_strstr(pos_to_mul_substr, "do()");
+    // search in reverse through pos_to_mul_substr for the don't() instruction
+    char *dont_mul = rev_strstr(pos_to_mul_substr, "don't()");
+
+    // if only a do() instruction was found before mul instruction, set
+    // mul_active to 1
+    if (dont_mul && (!do_mul || dont_mul > do_mul)) {
+      *mul_active = 0;
+    } else if (do_mul) {
+      *mul_active = 1;
+    }
+
     // check for the end of a valid mul instruction
     char *substr_end = strstr(substr, ")");
     if (substr_end == NULL) // if no end to a mul struction was found, it is
     // invalid and we can move on
     {
       fprintf(stderr, "Unmatched parenthesis for mul instruction\n");
-      // free memory on error
-      for (int i = 0; i < num_mul; i++) {
-        free(valid_muls[i]);
-      }
-      free(*valid_muls);
       valid_muls = NULL;
       return -1;
     }
@@ -385,68 +406,19 @@ int get_valid_muls_part2(const char *row, int length, int **valid_muls,
       continue;
     }
 
-    // get the distance from the current pos to the start of the mul instruction
-    // substring
-    int dist_to_mul = substr - (row + pos);
-    char *pos_to_mul_substr = malloc(dist_to_mul + 1);
-    if (pos_to_mul_substr == NULL) {
-      perror("Malloc failed to alloc memory");
-      exit(1);
-    }
-    slice(pos_to_mul_substr, row, pos, dist_to_mul);
-
-    // search in reverse through pos_to_mul_substr for the do() instruction
-    char *do_mul = rev_strstr(pos_to_mul_substr, "do()");
-    if (do_mul == NULL) {
-      fprintf(stderr, "No do() instruction before mul: %s\n",
-              pos_to_mul_substr);
-      // free do_mul before going to next iteration
-    }
-
-    // search in reverse through pos_to_mul_substr for the don't() instruction
-    char *dont_mul = rev_strstr(pos_to_mul_substr, "don't()");
-    if (dont_mul == NULL) {
-      fprintf(stderr, "No don't() instruction before mul: %s\n",
-              pos_to_mul_substr);
-      // free do_mul before going to next iteration
-    }
-
-    // if only a do() instruction was found before mul instruction, set
-    // mul_active to 1
-    if ((do_mul != NULL && dont_mul == NULL)) {
-      *mul_active = 1;
-    }
-    // if only a don't() instruction was found before the mul instruction, set
-    // mul_active to 0
-    if (do_mul == NULL && dont_mul != NULL) {
-      *mul_active = 0;
-    }
-    // if both instructions were found, determine which one is closer to the mul
-    // instruction, as only the LAST one applies
-    if ((do_mul != NULL && dont_mul != NULL) &&
-        (substr - do_mul) < (substr - dont_mul)) {
-      // do is closer
-      *mul_active = 1;
-    }
-    if ((do_mul != NULL && dont_mul != NULL) &&
-        (substr - do_mul) > (substr - dont_mul)) {
-      // dont is closer
-      *mul_active = 0;
-    }
-
     if (*mul_active == 1) {
       num_mul++;
       *valid_muls =
         realloc(*valid_muls, (*len_valid_muls + num_mul) * sizeof(int));
       if (valid_muls == NULL) {
-        perror("Malloc failed to alloc memory");
+        perror("realloc failed to alloc memory");
         exit(1);
       }
       (*valid_muls)[(*len_valid_muls + num_mul) - 1] = calc_result;
+      pos = substr_end - row + 1;
+    } else {
+      pos = substr + 4 - row;
     }
-
-    pos = substr_end - row + 1;
-    free(pos_to_mul_substr);
     free(valid_mul);
   }
   return num_mul;
@@ -454,16 +426,19 @@ int get_valid_muls_part2(const char *row, int length, int **valid_muls,
 
 char *rev_strstr(const char *haystack, const char *needle)
 {
-  char *loc = 0;
-  char *found = 0;
-  size_t pos = 0;
+  const char *last = NULL;
+  const char *current = haystack;
 
-  while ((found = strstr(haystack + pos, needle)) != 0) {
-    loc = found;
-    pos = (found - haystack) + 1;
+  if (*needle == '\0') {
+    return (char *)haystack + strlen(haystack);
   }
 
-  return loc;
+  while ((current = strstr(current, needle)) != NULL) {
+    last = current;
+    current++;
+  }
+
+  return (char *)last;
 }
 
 void slice(char *result, const char *source, ssize_t start, ssize_t end)
