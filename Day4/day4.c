@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+int search(const char **rows, ssize_t num_rows);
 void solve_part1(const char *pinput, ssize_t input_length);
 
 int get_number_lines(const char *pinput, ssize_t input_length);
@@ -27,7 +28,78 @@ void solve_part1(const char *pinput, ssize_t input_length)
     exit(-1);
   }
   split_rows(pinput, input_length, rows);
+  printf("num_xmas: %d\n", search(rows, number_lines));
   free(rows);
+}
+
+int search(const char **rows, ssize_t num_rows)
+{
+  int cur_row = 0;
+  // all rows should be the same length
+  int row_length = strlen(rows[0]);
+  int xmas_count = 0;
+
+  while (cur_row < num_rows) {
+    printf("NEW ROW - %d\n\n\n", cur_row);
+    for (int pos = 0; pos < row_length; pos++) {
+      // check if there is an X on the current row
+      char *x_pos = strstr(rows[cur_row] + pos, "X");
+      if (x_pos == NULL && pos == 0) {
+        fprintf(stderr, "No occurrence of X\n");
+        break;
+      }
+      if (x_pos == NULL) {
+        fprintf(stderr, "No further occurrences of X\n");
+        break;
+      }
+      // knowing the index of x is helpful below
+      int x_index = x_pos - rows[cur_row];
+
+      // check if XMAS occurrs on the same row
+      if (strncmp(x_pos - 3, "SAM", 3) == 0) {
+        printf("SAMX found backwards at rows[%d]: %d\n", cur_row, x_index);
+        xmas_count++;
+      }
+      if (strncmp(x_pos + 1, "MAS", 3) == 0) {
+        printf("XMAS found forwards at rows[%d]: %d\n", cur_row, x_index);
+        xmas_count++;
+      }
+      // check if XMAS occurrs on the vertical (same index on row but +- a row)
+
+      // if cur_row is 0 and cur_row+3 is not num_rows we want to check below
+      if (cur_row == 0 || cur_row + 3 < num_rows) {
+        if (strncmp(&rows[cur_row + 1][x_index], "M", 1) == 0) {
+          if (strncmp(&rows[cur_row + 2][x_index], "A", 1) == 0) {
+            if (strncmp(&rows[cur_row + 3][x_index], "S", 1) == 0) {
+              printf("XMAS found downwards at rows[%d]: %d\n", cur_row,
+                     x_index);
+              xmas_count++;
+            }
+          }
+        } else {
+          fprintf(stderr, "No xmas occurrence downwards from %d\n", x_index);
+        }
+      }
+      // if cur_row is not num_rows (last row) we want to check above
+      if (cur_row == num_rows || cur_row - 3 >= 0) {
+        if (strncmp(&rows[cur_row - 1][x_index], "M", 1) == 0) {
+          if (strncmp(&rows[cur_row - 2][x_index], "A", 1) == 0) {
+            if (strncmp(&rows[cur_row - 3][x_index], "S", 1) == 0) {
+              printf("XMAS found upwards at rows[%d]: %ld\n", cur_row,
+                     x_pos - rows[cur_row]);
+              xmas_count++;
+            }
+          }
+        } else {
+          fprintf(stderr, "No xmas occurrence upwards from %d\n", x_index);
+        }
+      }
+
+      pos += x_index;
+    }
+    cur_row++;
+  }
+  return xmas_count;
 }
 
 void split_rows(const char *pinput, ssize_t input_length, char **rows)
