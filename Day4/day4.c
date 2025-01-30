@@ -79,6 +79,40 @@ int search(const char **rows, ssize_t num_rows)
         } else {
           fprintf(stderr, "No xmas occurrence downwards from %d\n", x_index);
         }
+        // check if XMAS occurrs on the diagonal (+- index and +- row)
+
+        // if x_index is 0 (leftmost) and x_index+3 is less than or equal to
+        // row_length (rightmost) then we want to check the diagonal down and to the right
+        if (x_index == 0 || x_index + 3 <= row_length) {
+          if (strncmp(&rows[cur_row + 1][x_index + 1], "M", 1) == 0) {
+            if (strncmp(&rows[cur_row + 2][x_index + 2], "A", 1) == 0) {
+              if (strncmp(&rows[cur_row + 3][x_index + 3], "S", 1) == 0) {
+                printf("XMAS found downward right diagonal at rows[%d]: %ld\n",
+                       cur_row, x_pos - rows[cur_row]);
+                xmas_count++;
+              }
+            }
+          } else {
+            fprintf(stderr,
+                    "No xmas occurrence downwards right diagonal from %d\n",
+                    x_index);
+          }
+        }
+        if (x_index == row_length || x_index - 3 >= 0) {
+          if (strncmp(&rows[cur_row + 1][x_index - 1], "M", 1) == 0) {
+            if (strncmp(&rows[cur_row + 2][x_index - 2], "A", 1) == 0) {
+              if (strncmp(&rows[cur_row + 3][x_index - 3], "S", 1) == 0) {
+                printf("XMAS found downwards left diagonal at rows[%d]: %ld\n",
+                       cur_row, x_pos - rows[cur_row]);
+                xmas_count++;
+              }
+            }
+          } else {
+            fprintf(stderr,
+                    "No xmas occurrence downward left diagonal from %d\n",
+                    x_index);
+          }
+        }
       }
       // if cur_row is not num_rows (last row) we want to check above
       if (cur_row == num_rows || cur_row - 3 >= 0) {
@@ -92,6 +126,36 @@ int search(const char **rows, ssize_t num_rows)
           }
         } else {
           fprintf(stderr, "No xmas occurrence upwards from %d\n", x_index);
+        }
+        // check if XMAS occurrs on the diagonal (+- index and +- row)
+
+        if (x_index == 0 || x_index + 3 <= row_length) {
+          if (strncmp(&rows[cur_row - 1][x_index + 1], "M", 1) == 0) {
+            if (strncmp(&rows[cur_row - 2][x_index + 2], "A", 1) == 0) {
+              if (strncmp(&rows[cur_row - 3][x_index + 3], "S", 1) == 0) {
+                printf("XMAS found upwards right diagonal at rows[%d]: %ld\n",
+                       cur_row, x_pos - rows[cur_row]);
+                xmas_count++;
+              }
+            }
+          } else {
+            fprintf(stderr,
+                    "No xmas occurrence upwards right diagonal from %d\n",
+                    x_index);
+          }
+        }
+        if (x_index == row_length || x_index - 3 >= 0) {
+          if (strncmp(&rows[cur_row - 1][x_index - 1], "M", 1) == 0) {
+            if (strncmp(&rows[cur_row - 2][x_index - 2], "A", 1) == 0) {
+              if (strncmp(&rows[cur_row - 3][x_index - 3], "S", 1) == 0) {
+                printf("XMAS found upwards left diagonal at rows[%d]: %ld\n",
+                       cur_row, x_pos - rows[cur_row]);
+                xmas_count++;
+              }
+            }
+          } else {
+            fprintf(stderr, "No xmas occurrence upwards left diagonal\n");
+          }
         }
       }
 
